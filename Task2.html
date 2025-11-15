@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Login</title>
+
     <style>
         .container {
             width: 700px;
@@ -48,8 +49,41 @@
             padding: 5px 15px;
             cursor: pointer;
         }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
     </style>
+
+    <script>
+        function handleSubmit() {
+            const username = document.getElementById("name").value.trim();
+            const password = document.getElementById("password").value.trim();
+            
+            let valid = true;
+
+            if (username === "") {
+                document.getElementById("nameErr").innerHTML = "Name is required";
+                valid = false;
+            } else {
+                document.getElementById("nameErr").innerHTML = "";
+            }
+            if (password === "") {
+                document.getElementById("passwordErr").innerHTML = "Password is required";
+                valid = false;
+            } else if (password.length < 5) {
+                document.getElementById("passwordErr").innerHTML = "Password must be at least 5 characters";
+                valid = false;
+            } else {
+                document.getElementById("passwordErr").innerHTML = "";
+            }
+            if (valid) {
+                window.location.href = "dashboard.html";
+            }
+        }
+    </script>
 </head>
+
 <body>
 
 <div class="container">
@@ -68,12 +102,18 @@
 
         <div class="form-row">
             <div class="label">User Name:</div>
-            <input class="Textbox" type="text" placeholder="Enter Name">
+            <input id="name" class="Textbox" type="text" placeholder="Enter Name">
+        </div>
+        <div style="text-align:center;">
+            <span id="nameErr" class="error"></span>
         </div>
 
         <div class="form-row">
             <div class="label">Password:</div>
-            <input class="Textbox" type="password" placeholder="Password">
+            <input id="password" class="Textbox" type="password" placeholder="Password">
+        </div>
+        <div style="text-align:center;">
+            <span id="passwordErr" class="error"></span>
         </div>
 
         <div>
@@ -82,7 +122,7 @@
 
         <br>
 
-        <button class="btn" onclick="location.href='dashboard.html'">Submit</button>
+        <button class="btn" onclick="handleSubmit()">Submit</button>
         <br><br>
         <a href="#">Forgot Password?</a>
     </div>
