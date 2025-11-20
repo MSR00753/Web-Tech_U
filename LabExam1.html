@@ -1,0 +1,165 @@
+<html>
+<head>
+    <title>Event Registration</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: white;
+        }
+
+        .container {
+            width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        input, label {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        input[type="radio"] {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .error {
+            color: red;
+            font-size: 13px;
+            display: none;
+        }
+
+        button {
+            padding: 10px;
+            width: 100%;
+            background: steelblue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #statsPanel {
+            margin-top: 20px;
+            background: whitesmoke;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Event Registration</h2>
+
+    <label>Full Name*:</label>
+    <input type="text" id="name">
+    <p class="error" id="nameError">Name must be between 6 and 100 characters.</p>
+
+    <label>Professional Email*:</label>
+    <input type="text" id="email">
+    <p class="error" id="emailError">Please enter a valid professional email address.</p>
+
+    <label>Company / Institution (Optional):</label>
+    <input type="text" id="company">
+
+    <label>Attendance Type:</label>
+    <div>
+    <input type="radio" name="attend" value="Virtual"> Virtual
+    <input type="radio" name="attend" value="In-Person">In-Person
+    </div>
+    <p class="error" id="attendError">Please select your attendance type.</p>
+
+    <button onclick="register()">Register</button>
+
+    <button onclick="toggleStats()" id="statsBtn" style="background: brown; margin-top:15px;">
+        Show Event Analytics
+    </button>
+
+    <div id="statsPanel">
+        <h3>Event Analytics</h3>
+        <p>Total Registrants: <span id="totalReg">0</span></p>
+        <p>Virtual: <span id="virtualCount">0</span></p>
+        <p>In-Person: <span id="inpersonCount">0</span></p>
+    </div>
+</div>
+
+
+<script>
+    let registrations = [];
+    let virtualCount = 0;
+    let inPersonCount = 0;
+
+    function register() {
+        let name = document.getElementById("name").value.trim();
+        let email = document.getElementById("email").value.trim();
+        let company = document.getElementById("company").value.trim();
+        let attendance = document.querySelector('input[name="attend"]:checked');
+
+        let valid = true;
+
+        if (name.length < 6 || name.length > 100) {
+            document.getElementById("nameError").style.display = "block";
+            valid = false;
+        } else {
+            document.getElementById("nameError").style.display = "none";
+        }
+
+        if (!email.includes("@") || !email.includes(".")) {
+            document.getElementById("emailError").style.display = "block";
+            valid = false;
+        } else {
+            document.getElementById("emailError").style.display = "none";
+        }
+
+        if (attendance === null) {
+            document.getElementById("attendError").style.display = "block";
+            valid = false;
+        } else {
+            document.getElementById("attendError").style.display = "none";
+        }
+
+        if (!valid) return;
+
+        registrations.push({
+            name: name,
+            email: email,
+            company: company,
+            attend: attendance.value
+        });
+
+        if (attendance.value === "Virtual") virtualCount++;
+        if (attendance.value === "In-Person") inPersonCount++;
+
+        alert("Registration successful!");
+
+        updateStats();
+    }
+
+    function updateStats() {
+        document.getElementById("totalReg").innerText = registrations.length;
+        document.getElementById("virtualCount").innerText = virtualCount;
+        document.getElementById("inpersonCount").innerText = inPersonCount;
+    }
+
+    function toggleStats() {
+        let panel = document.getElementById("statsPanel");
+        let btn = document.getElementById("statsBtn");
+
+        if (panel.style.display === "none") {
+            panel.style.display = "block";
+            btn.innerText = "Hide Event Analytics";
+        } else {
+            panel.style.display = "none";
+            btn.innerText = "Show Event Analytics";
+        }
+    }
+</script>
+
+</body>
+</html>
