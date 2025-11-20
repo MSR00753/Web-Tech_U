@@ -1,0 +1,260 @@
+<html>
+<head>
+<title>Product Review System</title>
+
+<style>
+    body { font-family: Arial; margin: 20px; }
+
+    .container { 
+           width: 700px; 
+           margin: auto; 
+        }
+
+    .stats-box {
+        border: 1px solid #333;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+
+    .review-box, .review-item {
+        border: 1px solid #999;
+        padding: 10px;
+        margin-top: 15px;
+        border-radius: 5px;
+    }
+
+    label { 
+        display: block; 
+        margin-top: 10px; 
+    }
+    input, textarea { 
+        width: 100%; 
+        padding: 5px; 
+    }
+    textarea { height: 80px; }
+
+    .error { 
+        color: red; 
+        font-size: 14px; 
+    }
+
+    .stars span {
+        font-size: 25px;
+        cursor: pointer;
+        color: gray;
+    }
+
+    .stars .selected {
+        color: gold;
+    }
+
+    .review-item { background: #f7f7f7; }
+    .help-btn { margin-top: 5px; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Product Review Section</h1>
+    <div class="stats-box">
+        <p>Total Reviews: <span id="totalReviews">0</span></p>
+        <p>Average Rating: <span id="avgRating">0</span></p>
+        <p>Recommendation: <span id="recommendPercent">0%</span></p>
+
+        <label>Sort Reviews:</label>
+        <select id="sortOption">
+            <option value="new">Newest First</option>
+            <option value="high">Highest Rated First</option>
+        </select>
+    </div>
+    <div class="review-box">
+        <h2>Write a Review</h2>
+
+        <label>Customer Name:</label>
+        <input type="text" id="name">
+        <p class="error" id="nameErr"></p>
+
+        <label>Email (optional):</label>
+        <input type="text" id="email">
+        <p class="error" id="emailErr"></p>
+
+        <label>Review Title:</label>
+        <input type="text" id="title">
+        <p class="error" id="titleErr"></p>
+
+        <label>Review Description:</label>
+        <textarea id="desc"></textarea>
+        <p>Characters: <span id="charCount">0</span>/1000</p>
+        <p class="error" id="descErr"></p>
+
+        <label>Rating:</label>
+        <div class="stars" id="starBox">
+            <span data-val="1">★</span>
+            <span data-val="2">★</span>
+            <span data-val="3">★</span>
+            <span data-val="4">★</span>
+            <span data-val="5">★</span>
+        </div>
+        <p class="error" id="rateErr"></p>
+
+        <label>Would Recommend?</label>
+        <input type="radio" name="rec" value="yes"> Yes 
+        <input type="radio" name="rec" value="no"> No
+
+        <br><br>
+        <button id="submitBtn">Submit Review</button>
+    </div>
+
+    <h2>Customer Reviews</h2>
+    <div id="reviewList"></div>
+
+</div>
+
+<script>
+let reviews = [];
+let selectedRating = 0;
+
+document.getElementById("desc").addEventListener("input", function() {
+    document.getElementById("charCount").innerText = this.value.length;
+});
+
+document.querySelectorAll("#starBox span").forEach(star => {
+    star.onclick = function() {
+        selectedRating = this.getAttribute("data-val");
+        highlightStars(selectedRating);
+    }
+});
+
+function highlightStars(count) {
+    document.querySelectorAll("#starBox span").forEach(star => {
+        star.classList.remove("selected");
+    });
+    for (let i = 0; i < count; i++) {
+        document.querySelectorAll("#starBox span")[i].classList.add("selected");
+    }
+}
+
+document.getElementById("submitBtn").onclick = function() {
+    clearErrors();
+
+    let name = document.getElementById("name").value.trim();
+    let email = document.getElementById("email").value.trim();
+    let title = document.getElementById("title").value.trim();
+    let desc = document.getElementById("desc").value.trim();
+    let rec = document.querySelector("input[name='rec']:checked");
+
+    let valid = true;
+
+    if (name.length < 2 || name.length > 30) {
+        document.getElementById("nameErr").innerText = "Name should be between 2 and 30 characters";
+        valid = false;
+    }
+
+    if (email.length > 0 && !email.includes("@")) {
+        document.getElementById("emailErr").innerText = "Please enter a valid email address";
+        valid = false;
+    }
+
+    if (title.length < 5 || title.length > 100) {
+        document.getElementById("titleErr").innerText = "Review title should be between 5 and 100 characters";
+        valid = false;
+    }
+
+    if (desc.length < 20 || desc.length > 1000) {
+        document.getElementById("descErr").innerText = "Review description should be between 20 and 1000 characters";
+        valid = false;
+    }
+
+    if (selectedRating == 0) {
+        document.getElementById("rateErr").innerText = "Please select a product rating";
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    let reviewObj = {
+        name: name,
+        email: email,
+        title: title,
+        desc: desc,
+        rating: Number(selectedRating),
+        recommend: rec ? rec.value : "no",
+        date: new Date(),
+        helpful: 0
+    };
+
+    reviews.push(reviewObj);
+    updateStats();
+    displayReviews();
+    resetForm();
+};
+function clearErrors() {
+    document.getElementById("nameErr").innerText = "";
+    document.getElementById("emailErr").innerText = "";
+    document.getElementById("titleErr").innerText = "";
+    document.getElementById("descErr").innerText = "";
+    document.getElementById("rateErr").innerText = "";
+}
+function resetForm() {
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("desc").value = "";
+    selectedRating = 0;
+    highlightStars(0);
+    document.getElementById("charCount").innerText = "0";
+    document.querySelectorAll("input[name='rec']").forEach(r => r.checked = false);
+}
+function displayReviews() {
+    let list = document.getElementById("reviewList");
+    list.innerHTML = "";
+
+    let sortedReviews = [...reviews];
+
+    let sortOption = document.getElementById("sortOption").value;
+
+    if (sortOption === "high") {
+        sortedReviews.sort((a,b)=> b.rating - a.rating);
+    } else {
+        sortedReviews.sort((a,b)=> b.date - a.date);
+    }
+
+    sortedReviews.forEach((r, i) => {
+        let div = document.createElement("div");
+        div.className = "review-item";
+
+        div.innerHTML = `
+            <h3>${r.title}</h3>
+            <p><b>${r.name}</b> (${r.email})</p>
+            <p>Rating: ${"★".repeat(r.rating)}</p>
+            <p>${r.desc}</p>
+            <p>Recommend: ${r.recommend}</p>
+            <p>${r.date.toLocaleString()}</p>
+            <button class="help-btn" onclick="markHelpful(${i})">Helpful (${r.helpful})</button>
+        `;
+        list.appendChild(div);
+    });
+}
+function markHelpful(index) {
+    reviews[index].helpful++;
+    displayReviews();
+}
+function updateStats() {
+    let total = reviews.length;
+    document.getElementById("totalReviews").innerText = total;
+
+    let avg = reviews.reduce((a,b)=> a + b.rating, 0) / total;
+    document.getElementById("avgRating").innerText = avg.toFixed(1);
+
+    let recCount = reviews.filter(r => r.recommend === "yes").length;
+    let percent = (recCount / total) * 100;
+    document.getElementById("recommendPercent").innerText = percent.toFixed(0) + "%";
+}
+document.getElementById("sortOption").onchange = displayReviews;
+
+</script>
+
+</body>
+</html>
